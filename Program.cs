@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization; // Add this namespace for CultureInfo
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using CsvHelper;
-using CsvHelper.Configuration;
+using CsvHelper.Configuration; // Import the CsvHelper.Configuration namespace for CsvConfiguration.
 
 namespace FirstBankOfSunCoast
 {
     class Program
     {
+        // Helper method to prompt the user for a string input and convert it to uppercase.
         static string PromptString(string prompt)
         {
             Console.WriteLine(prompt);
             var userInput = Console.ReadLine().ToUpper();
-
             return userInput;
         }
 
+        // Helper method to prompt the user for a decimal number input, handle non-numeric input.
         static decimal PromptNumber(string prompt)
         {
             Console.WriteLine(prompt);
@@ -25,7 +26,7 @@ namespace FirstBankOfSunCoast
 
             var isInputGood = decimal.TryParse(Console.ReadLine(), out userInput);
 
-            if (isInputGood != true)
+            if (!isInputGood)
             {
                 Console.WriteLine("The Input was not a Number. We will use {0} instead", userInput);
                 return 0;
@@ -34,46 +35,37 @@ namespace FirstBankOfSunCoast
             {
                 return userInput;
             }
-
         }
 
+        // Display a welcome message.
         static void Greetings()
         {
-
             Console.WriteLine("----------------------------------------");
             Console.WriteLine("");
             Console.WriteLine("Welcome to SunCoast ATM!\nOpen 24/7");
             Console.WriteLine("");
             Console.WriteLine("_________________________________________");
-
-
         }
 
         static void Main(string[] args)
         {
             Greetings();
 
-
-
+            // Initialize transaction lists for savings and checking.
             var transactions = LoadTransactionsFromCsv("transactions.csv");
             var savingsTransactions = new List<Transaction>();
             var checkingTransactions = new List<Transaction>();
 
-
             bool menukeepGoing = true;
-
-
-
 
             while (menukeepGoing)
             {
                 Console.WriteLine("-------------------------------");
                 Console.WriteLine("");
-                Console.WriteLine("ATM Menu: \n(1)Deposit To Savings \n(2)Deposit To Checking \n(3)Withdraw From Savings \n(4)Withdraw From Checking \n(5)See Savings Balance \n(6)See Checking Balance \n(7)See Savings Transactions \n(8)See Checking Transactions \n(9)Quit");
+                Console.WriteLine("ATM Menu: \n(1) Deposit To Savings \n(2) Deposit To Checking \n(3) Withdraw From Savings \n(4) Withdraw From Checking \n(5) See Savings Balance \n(6) See Checking Balance \n(7) See Savings Transactions \n(8) See Checking Transactions \n(9) Quit");
                 Console.WriteLine("");
                 Console.WriteLine("_________________________________");
                 var menuInput = Convert.ToInt32(Console.ReadLine().ToUpper());
-
 
                 if (menuInput == 9)
                 {
@@ -119,7 +111,7 @@ namespace FirstBankOfSunCoast
             }
         }
 
-
+        // Save transactions to a CSV file.
         private static void SaveTransactionsToCsv(List<Transaction> transactions, string fileName)
         {
             using (var writer = new StreamWriter(fileName))
@@ -132,6 +124,7 @@ namespace FirstBankOfSunCoast
             }
         }
 
+        // Load transactions from a CSV file.
         private static List<Transaction> LoadTransactionsFromCsv(string fileName)
         {
             if (!File.Exists(fileName))
@@ -150,8 +143,7 @@ namespace FirstBankOfSunCoast
             }
         }
 
-
-
+        // Display all checking account transactions.
         private static void SeeCheckingTransactions(List<Transaction> transactions)
         {
             Console.WriteLine("All of CHECKING Account Transactions: ");
@@ -167,6 +159,7 @@ namespace FirstBankOfSunCoast
             }
         }
 
+        // Display all savings account transactions.
         private static void SeeSavingsTransaction(List<Transaction> transactions)
         {
             Console.WriteLine("All of SAVINGS Account Transactions: ");
@@ -187,18 +180,17 @@ namespace FirstBankOfSunCoast
             }
         }
 
-
+        // Display checking account balance.
         private static void SeeCheckingBalance(List<Transaction> transactions)
         {
             Console.WriteLine("Showing the Balance from CHECKING ACCOUNT: ");
 
-
             var currentCheckingBalance = transactions.Where(value => value.AccountType == "Checking").Sum(value => value.TransactionType == "Deposit" ? value.Amount : -value.Amount);
-
 
             Console.WriteLine($"Savings Balance: ${currentCheckingBalance}");
         }
 
+        // Display savings account balance.
         private static void SeeSavingsBalance(List<Transaction> transactions)
         {
             Console.WriteLine("Showing the Balance from SAVINGS ACCOUNT: ");
@@ -207,12 +199,12 @@ namespace FirstBankOfSunCoast
             Console.WriteLine($"Savings Balance: ${balanceSavings}");
         }
 
+        // Handle withdrawing money from checking account.
         private static void WithdrawFromChecking(List<Transaction> transactions, List<Transaction> checkingTransactions)
         {
             Console.WriteLine("What is the Amount You Will WITHDRAW from CHECKING:  ");
             var withdrawAmountChecking = decimal.Parse(Console.ReadLine());
             Console.WriteLine("----------------------------------------------------------");
-
 
             if (withdrawAmountChecking <= 0)
             {
@@ -220,7 +212,6 @@ namespace FirstBankOfSunCoast
             }
             else
             {
-
                 var oldCheckingBalance = transactions.Where(value => value.AccountType == "Checking").Sum(value => value.TransactionType == "Deposit" ? value.Amount : -value.Amount);
 
                 if (withdrawAmountChecking > oldCheckingBalance)
@@ -229,7 +220,6 @@ namespace FirstBankOfSunCoast
                 }
                 else
                 {
-
                     transactions.Add(new Transaction("Withdrawal", "Checking", withdrawAmountChecking));
                     checkingTransactions.Add(new Transaction("Withdrawal", "Checking", withdrawAmountChecking));
 
@@ -238,23 +228,11 @@ namespace FirstBankOfSunCoast
                     Console.WriteLine("Checking Transactions: Withdrawal From Checking");
 
                     Console.WriteLine($"Old Checking Balance: ${oldCheckingBalance} \nWithdrawal Amount: ${withdrawAmountChecking} \nNew Checking Balance After Withdrawal: ${newCheckingBalance}");
-
-
-
-
-
-
-
                 }
-
-
-
-
-
             }
-
         }
 
+        // Handle withdrawing money from savings account.
         private static void WithdrawFromSavings(List<Transaction> transactions, List<Transaction> savingsTransactions)
         {
             Console.WriteLine("What is the Amount You Will WITHDRAW from SAVINGS: ");
@@ -282,8 +260,6 @@ namespace FirstBankOfSunCoast
 
                     var newSavingsBalance = oldSavingsBalance - withdrawAmountSavings;
 
-
-
                     Console.WriteLine("Savings Transactions: Withdrawal From Savings");
 
                     Console.WriteLine($"Old Savings Balance: ${oldSavingsBalance} \nWithdrawal Amount: ${withdrawAmountSavings} \nNew Savings Balance After Withdrawal: ${newSavingsBalance}");
@@ -291,11 +267,11 @@ namespace FirstBankOfSunCoast
             }
         }
 
+        // Handle depositing money to checking account.
         private static void DepositToChecking(List<Transaction> transactions, List<Transaction> checkingTransactions)
         {
             decimal checkingsDepositAmount = PromptNumber("What is the Amount You will DEPOSIT into CHECKING in DOLLAR(S): ");
             Console.WriteLine("____________________________________________________________________________");
-
 
             if (checkingsDepositAmount <= 0)
             {
@@ -305,24 +281,18 @@ namespace FirstBankOfSunCoast
             {
                 var oldDepositCheckingAmount = transactions.Where(value => value.AccountType == "Checking").Sum(value => value.TransactionType == "Deposit" ? value.Amount : -value.Amount);
 
-
                 transactions.Add(new Transaction("Deposit", "Checking", checkingsDepositAmount));
                 checkingTransactions.Add(new Transaction("Deposit", "Checking", checkingsDepositAmount));
 
-
                 var newSavingsBalance = oldDepositCheckingAmount + checkingsDepositAmount;
-
 
                 Console.WriteLine("Deposit To Checking");
 
-
-
-                // Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------");
                 Console.WriteLine($"Old Deposit Balance: ${oldDepositCheckingAmount} \nAmount Deposited: ${checkingsDepositAmount} \nNew Deposit in Savings Amount: ${newSavingsBalance}");
-                // Console.WriteLine("----
             }
         }
 
+        // Handle depositing money to savings account.
         private static void DepositToSavings(List<Transaction> transactions, List<Transaction> savingsTransactions)
         {
             decimal savingsDepositAmount = PromptNumber("What is the Amount You will DEPOSIT into SAVINGS in DOLLAR(S): ");
@@ -333,7 +303,6 @@ namespace FirstBankOfSunCoast
             }
             else
             {
-
                 var oldSavingsBalance = transactions.Where(value => value.AccountType == "Savings").Sum(value => value.TransactionType == "Deposit" ? value.Amount : -value.Amount);
 
                 if (oldSavingsBalance > savingsDepositAmount)
@@ -342,30 +311,15 @@ namespace FirstBankOfSunCoast
                 }
                 else
                 {
-
                     transactions.Add(new Transaction("Deposit", "Savings", savingsDepositAmount));
                     savingsTransactions.Add(new Transaction("Deposit", "Savings", savingsDepositAmount));
                     var newDepositBalance = savingsDepositAmount + oldSavingsBalance;
 
-
                     Console.WriteLine("Deposit To Savings");
 
-
-
-                    // Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------");
                     Console.WriteLine($"Old Deposit Balance: ${oldSavingsBalance} \nAmount Deposited: ${savingsDepositAmount} \nNew Deposit in Savings Amount: ${newDepositBalance}");
-                    // Console.WriteLine("------------------------------------------------------------------------------------------------------------------------------");
-
-
-
                 }
-
-
             }
         }
     }
 }
-
-
-
-
